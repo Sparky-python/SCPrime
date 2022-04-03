@@ -21,6 +21,29 @@ def check_open_ports(ip):
   port_list = json.loads(response.text)['data']
   return(port_list)
 
+def are_spd_ports_open(spd_port, open_ports_list):
+
+  spd_port_num = int(spd_port)
+  spd_port_num2 = spd_port_num + 1
+  spd_port_num3 = spd_port_num + 3
+
+  if spd_port_num in open_ports_list:
+    print ("Port " + str(spd_port_num) + " is correctly forwarded")
+  else:
+    print ("Port " + str(spd_port_num) + " is not forwarded correctly or is blocked by a firewall")
+
+  if spd_port_num2 in open_ports_list:
+    print ("Port " + str(spd_port_num2) + " is correctly forwarded")
+  else:
+    print ("Port " + str(spd_port_num2) + " is not forwarded correctly or is blocked by a firewall")
+
+  if spd_port_num3 in open_ports_list:
+    print ("Port " + str(spd_port_num3) + " is correctly forwarded")
+  else:
+    print ("Port " + str(spd_port_num3) + " is not forwarded correctly or is blocked by a firewall")
+
+
+
 
 spd_path = sp.getoutput("find / -name spd -type f 2>/dev/null")
 spc_path = sp.getoutput("find / -name spc -type f 2>/dev/null")
@@ -43,12 +66,15 @@ for line in lines:
     version = line.split(":")[1].strip()
   elif "netaddress" in line:
     netaddress = line.split(":")[1].strip()
+    announced_port = line.split(":")[2].strip().split(" ")[0]
   elif "collateral" in line:
     collateral = line.split(":")[1].strip()
   elif "Storage Folders" in line:
     storage = True
   elif storage == True:
     storage_folders.append(line)
+
+
 
 wallet = False
 lines = spc.splitlines()
@@ -61,8 +87,13 @@ for line in lines:
     status = line.split(":")[1].strip()
     wallet = False
 
-print ("Your public IP address is: " + public_ip)
+port_list = check_open_ports(public_ip)
 
+print ("#######################")#
+print ("Your public IP address is: " + public_ip)
+print ("SPD is running on port " + announced_port)
+
+are_spd_ports_open(announced_port, port_list)
 if "Host appears to be working" in connectability_status:
   print ("SPD is working fine")
 elif "connectable" in connectability_status:
@@ -70,7 +101,6 @@ elif "connectable" in connectability_status:
 else:
   print ("SPD has a problem")
 
-port_list = check_open_ports(public_ip)
 print("Your open ports are as follows:")
 for port in port_list:
   print(port)
