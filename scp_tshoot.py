@@ -4,6 +4,7 @@ import subprocess as sp
 import os
 import requests
 import json
+import pprint
 
 def check_open_ports(ip):
 
@@ -42,8 +43,31 @@ def are_spd_ports_open(spd_port, open_ports_list):
   else:
     print ("Port " + str(spd_port_num3) + " is not forwarded correctly or is blocked by a firewall")
 
+def get_storage_folders(storage_folders):
 
+  folders_dict_list = []
 
+  for folder in storage_folders:
+    folders_dict = {}
+    folders_dict["Used"] = folder.split("   ")[1]
+    folders_dict["Capacity"] = folder.split("   ")[2]
+    folders_dict["Used"] = folder.split("   ")[3]
+    folders_dict["Path"] = folder.split("   ")[5]
+    folders_dict_list.append(folders_dict)
+
+  return (folders_dict_list)
+
+def get_drive_size():
+  drive_sizes = sp.getoutput("lsblk | grep disk").splitlines()
+  drive_dict_list = []
+
+  for drive in drive_sizes:
+    drive_dict = {}
+    drive_dict["Name"] = drive.split()[0]
+    drive_dict["Size"] = drive.split()[3]
+    drive_dict_list.append(drive_dict) 
+
+  return (drive_dict_list)
 
 spd_path = sp.getoutput("find / -name spd -type f 2>/dev/null")
 spc_path = sp.getoutput("find / -name spc -type f 2>/dev/null")
@@ -71,9 +95,8 @@ for line in lines:
     collateral = line.split(":")[1].strip()
   elif "Storage Folders" in line:
     storage = True
-  elif storage == True:
+  elif (storage == True) and ("Used" not in line):
     storage_folders.append(line)
-
 
 
 wallet = False
@@ -105,4 +128,5 @@ print("Your open ports are as follows:")
 for port in port_list:
   print(port)
 
-
+pprint.pprint(get_storage_folders(storage_folders))
+pprint.pprint(get_drive_size())
